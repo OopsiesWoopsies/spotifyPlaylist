@@ -21,9 +21,11 @@ def playlist_things(local_token, local_expiry):
                 print(f"{i+1}. {val["name"]}")
 
             choice = util.choice_validation(f"View playlist's tracks (1-{size}): ", size)
-            print("Tracks in " + json_result[int(choice)]["name"] - 1)
+            print("Tracks in " + json_result[int(choice)-1]["name"])
 
             json_result = playlist_functions.get_playlist_tracks(token, json_result[int(choice)-1]["tracks"]["href"])
+            # print(json_result)
+            util.print_choices(json_result["items"])
 
 
         elif choice == "2":
