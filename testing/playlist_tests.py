@@ -26,7 +26,6 @@ def playlist_things(local_token, local_expiry):
             json_result = playlist_functions.get_playlist_tracks(token, json_result[int(choice)-1]["tracks"]["href"])
 
 
-
         elif choice == "2":
             playlist_name = input("Enter a name for the new playlist: ")
             description = input("Enter a description: ")
