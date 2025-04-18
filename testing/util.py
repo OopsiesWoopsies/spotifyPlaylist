@@ -28,8 +28,9 @@ def choice_validation(message: str, cap: int) -> int:
 
 def view_with_pages(token: str, json_result: dict) -> None:
     while True:
-        print("Currently viewing tracks.\n1. Next\n2. Previous\n3. Quit")
+        print("\n1. Next\n2. Previous\n3. Quit")
         choice = choice_validation(f"(1-3): ", 3)
+        print()
 
         if choice == 3:
             return
