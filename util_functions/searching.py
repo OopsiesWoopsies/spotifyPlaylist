@@ -4,7 +4,7 @@ from requests import get
 import json
 
 
-def search_for_artist(token: str, artist_name: str):
+def search_for_artist(token: str, artist_name: str) -> dict:
     limit = 5
     url = "https://api.spotify.com/v1/search"
     headers = get_token.get_auth_headers(token)
@@ -15,7 +15,7 @@ def search_for_artist(token: str, artist_name: str):
     json_result = json.loads(result.content)["artists"]["items"]
     return json_result
 
-def get_songs(token: str, artist_id: str):
+def get_songs(token: str, artist_id: str) -> dict:
     url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?country=CA"
     headers = get_token.get_auth_headers(token)
     result = get(url, headers=headers)

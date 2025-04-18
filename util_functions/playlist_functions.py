@@ -1,10 +1,10 @@
 import json
 from requests import get, post
 
-from util_functions import get_token
+from util_functions import get_token, util
 
 
-def get_playlists(token: str):
+def get_playlists(token: str) -> dict:
     url = "https://api.spotify.com/v1/me/playlists"
     header = get_token.get_auth_headers(token)
 
@@ -13,7 +13,7 @@ def get_playlists(token: str):
     return json_result["items"]
 
 
-def create_playlist(token: str, playlist_name: str = "New Playlist", description: str = "", public: bool = False):
+def create_playlist(token: str, playlist_name: str = "New Playlist", description: str = "", public: bool = False) -> dict:
     url = f"https://api.spotify.com/v1/me/playlists"
     headers = {
         "Content-Type": "application/json",
@@ -31,16 +31,8 @@ def create_playlist(token: str, playlist_name: str = "New Playlist", description
     return json_result
 
 
-def get_playlist_tracks(token, href: str):
-    url = href
-    headers = get_token.get_auth_headers(token)
-
-    result = get(url, headers=headers)
-    json_result = json.loads(result.content)
-
-    if json_result is None:
-        print("NONE!")
-    return json_result
+def get_playlist_tracks(token, href: str) -> dict:
+    return util.get_json_from_href(token, href)
 
 def add_songs_to_playlist(): # Unsure of parameters yet
     pass

@@ -22,7 +22,7 @@ def user_things(local_token, local_expiry):
             util.print_choices(util.time_range_choices)
             time_range = util.choice_validation("Top artists from: (1-3): ", 3)
             print()
-            json_result = user_functions.get_top_user_artists(token, limit, time_range)
+            json_result = user_functions.get_top_user_artists(token, str(limit), str(time_range))
             for i, val in enumerate(json_result):
                 print(f"{str(i+1) + '. ' + val["name"]:<40} Genre(s): {str(val["genres"]):<100} Popularity: {str(val["popularity"]) + '/100':<10} Followers: {val["followers"]["total"]:<20,}")
                 print("-" * 200)
@@ -35,7 +35,7 @@ def user_things(local_token, local_expiry):
             time_range = util.choice_validation("Top artists from: (1-3): ", 3)
             print()
 
-            json_result = user_functions.get_top_user_tracks(token, limit, time_range)
+            json_result = user_functions.get_top_user_tracks(token, str(limit), str(time_range))
             for i, val in enumerate(json_result):
                 print(f"{str(i+1) + '. ' + val["name"]:<70} Popularity: {str(val["popularity"]) + '/100':<10} Artist: {val["artists"][0]["name"]:<10}")
                 print("-" * 150)

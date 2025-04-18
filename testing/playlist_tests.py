@@ -20,11 +20,20 @@ def playlist_things(local_token, local_expiry):
             for i, val in enumerate(json_result):
                 print(f"{i+1}. {val["name"]}")
 
-            choice = util.choice_validation(f"View playlist's tracks (1-{size}): ", size)
-            print("Tracks in " + json_result[int(choice)]["name"] - 1)
+            choice = util.choice_validation(f"View playlist's tracks (1-{size}): ", size) # Consider the page turning for playlists
+            playlist_choice = json_result[choice-1]
 
-            json_result = playlist_functions.get_playlist_tracks(token, json_result[int(choice)-1]["tracks"]["href"])
+            print("\nTracks in " + playlist_choice["name"])
+            json_result = playlist_functions.get_playlist_tracks(token, playlist_choice["tracks"]["href"])
 
+            if len(json_result["items"]) == 0:
+                print(f"Wait a minute... there's no tracks in {playlist_choice["name"]}!\n")
+                continue
+
+            for i in range(len(json_result["items"])):
+                print(f"{i+1}. {json_result["items"][i]["track"]["name"]}")
+
+            util.view_with_pages(token, json_result)
 
         elif choice == "2":
             playlist_name = input("Enter a name for the new playlist: ")
