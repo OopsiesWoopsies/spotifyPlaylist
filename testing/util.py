@@ -11,12 +11,10 @@ page_options = ["Previous", "Next", "Back"]
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def print_choices(arr: list):
+def print_choices(arr: list) -> None:
     for i, val in enumerate(arr):
         print(f"{i+1}. {val}")
-
     print()
-
 
 def choice_validation(message: str, cap: int) -> str:
     while True:

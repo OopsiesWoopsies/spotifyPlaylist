@@ -21,15 +21,21 @@ def playlist_things(local_token, local_expiry):
                 print(f"{i+1}. {val["name"]}")
 
             choice = util.choice_validation(f"View playlist's tracks (1-{size}): ", size)
-            print()
-            print("Tracks in " + json_result[int(choice)-1]["name"])
+            playlist_choice = json_result[int(choice)-1]
 
-            json_result = playlist_functions.get_playlist_tracks(token, json_result[int(choice)-1]["tracks"]["href"])
+            print("\nTracks in " + playlist_choice["name"])
+            json_result = playlist_functions.get_playlist_tracks(token, playlist_choice["tracks"]["href"])
+
+            if len(json_result["items"]) == 0:
+                print(f"Wait a minute... there's no tracks in {playlist_choice["name"]}!\n")
+                continue
 
             for i in range(len(json_result["items"])):
                 print(f"{i+1}. {json_result["items"][i]["track"]["name"]}")
 
             # Make it so you can go different pages and make it a feature (as well as looking at playlist tracks)
+
+            print(json_result)
 
         elif choice == "2":
             playlist_name = input("Enter a name for the new playlist: ")
