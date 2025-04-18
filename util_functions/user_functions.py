@@ -8,6 +8,7 @@ def get_current_user(token: str):
     headers = get_token.get_auth_headers(token)
     result = get(url, headers=headers)
     json_result = json.loads(result.content)
+
     return json_result
 
 def get_top_user_artists(token: str, limit: str, time_range: str) -> dict:
@@ -17,6 +18,7 @@ def get_top_user_artists(token: str, limit: str, time_range: str) -> dict:
     headers = get_token.get_auth_headers(token)
     result = get(url, headers=headers)
     json_result = json.loads(result.content)
+
     return json_result["items"]
 
 def get_top_user_tracks(token: str, limit: str, time_range: str) -> dict:
@@ -26,4 +28,5 @@ def get_top_user_tracks(token: str, limit: str, time_range: str) -> dict:
     headers = get_token.get_auth_headers(token)
     result = get(url, headers=headers)
     json_result = json.loads(result.content)
+
     return json_result["items"]

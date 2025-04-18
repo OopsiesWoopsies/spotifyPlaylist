@@ -34,9 +34,9 @@ if __name__ == "__main__":
                     print(f"{str(i+1) + '. ' + val["name"]:<30s} Popularity: {str(val["popularity"]) + '/100':<50s}")
 
                 artist_id_num = util.choice_validation("Artist #: ", len(json_result))
-                artist_id = json_result[int(artist_id_num)-1]["id"]
+                artist_id = json_result[artist_id_num-1]["id"]
 
-                print(f"\nShowing results for {json_result[int(artist_id_num)-1]["name"]}: \nPopularity: {json_result[int(artist_id_num)-1]["popularity"]}/100\n")
+                print(f"\nShowing results for {json_result[artist_id_num-1]["name"]}: \nPopularity: {json_result[artist_id_num-1]["popularity"]}/100\n")
                 json_result = searching.get_songs(token, artist_id)
 
                 for i, val in enumerate(json_result):

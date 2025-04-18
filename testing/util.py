@@ -1,3 +1,5 @@
+import util_functions
+
 choices = ["Current User Options", "Artists", "Quit"]
 user_options = ["Current User", "User Top Artists", "User Top Tracks", "Playlist Options", "Go Back"]
 playlist_options = ["Get Playlists & Tracks", "Create Playlist", "Edit Playlist Information", "Update Playlist", "Go Back"] # Make it so you can view everything in a playlist since the limit is 50
@@ -16,10 +18,31 @@ def print_choices(arr: list) -> None:
         print(f"{i+1}. {val}")
     print()
 
-def choice_validation(message: str, cap: int) -> str:
+def choice_validation(message: str, cap: int) -> int:
     while True:
         choice = input(message)
         if choice.isdigit() and 0 < int(choice) <= cap:
-            return choice
+            return int(choice)
         else:
             print("Invalid #.")
+
+def view_with_pages(token: str, json_result: dict) -> None:
+    while True:
+        print("Currently viewing tracks.\n1. Next\n2. Previous\n3. Quit")
+        choice = choice_validation(f"(1-3): ", 3)
+
+        if choice == 3:
+            return
+
+        if choice == 1:
+             check_result = util_functions.util.get_page(token, json_result, "next")
+             if "error" not in check_result:
+                 json_result = check_result
+
+        elif choice == 2:
+            check_result = util_functions.util.get_page(token, json_result, "previous")
+            if "error" not in check_result:
+                json_result = check_result
+
+        for i in range(len(json_result["items"])):
+            print(f"{i+1}. {json_result["items"][i]["track"]["name"]}")
