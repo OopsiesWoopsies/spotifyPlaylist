@@ -9,7 +9,7 @@ def playlist_things(local_token, local_expiry):
 
         token, expiry = get_token.check_expiration(local_token, local_expiry)
 
-        if choice == "1":
+        if choice == "1": # view playlists
             json_result = playlist_functions.get_playlists(token)
             size = len(json_result)
 
@@ -20,7 +20,7 @@ def playlist_things(local_token, local_expiry):
             for i, val in enumerate(json_result):
                 print(f"{i+1}. {val["name"]}")
 
-            choice = util.choice_validation(f"View playlist's tracks (1-{size}): ", size) # Consider the page turning for playlists
+            choice = util.choice_validation(f"View playlist's tracks (1-{size}): ", size) # Consider the page turning for playlists and many other things
             playlist_choice = json_result[choice-1]
 
             print("\nTracks in " + playlist_choice["name"])
@@ -35,7 +35,7 @@ def playlist_things(local_token, local_expiry):
 
             util.view_with_pages(token, json_result)
 
-        elif choice == "2":
+        elif choice == "2": # playlist creation
             playlist_name = input("Enter a name for the new playlist: ")
             description = input("Enter a description: ")
 
@@ -44,11 +44,15 @@ def playlist_things(local_token, local_expiry):
 
             json_result = playlist_functions.create_playlist(token, playlist_name, description)
 
-        elif choice == "3":
+        elif choice == "3": # editing playlists
             pass
 
-        elif choice == "4":
+        elif choice == "4": # updating playlists
             pass
+
+        elif choice == "5":
+            playlist_functions.auto_add_songs_to_new_playlist(token)
+            print("executed")
 
         elif choice == str(len(util.playlist_options)):
             break

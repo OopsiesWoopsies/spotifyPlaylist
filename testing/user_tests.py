@@ -11,11 +11,11 @@ def user_things(local_token, local_expiry):
 
         token, expiry = get_token.check_expiration(local_token, local_expiry)
 
-        if choice == "1":
+        if choice == "1": # user info
             json_result = user_functions.get_current_user(token)
             print(json_result)
 
-        elif choice == "2":
+        elif choice == "2": # top artists
             limit = util.choice_validation("Enter # of tracks (1-50): ", 50)
             print()
 
@@ -27,7 +27,7 @@ def user_things(local_token, local_expiry):
                 print(f"{str(i+1) + '. ' + val["name"]:<40} Genre(s): {str(val["genres"]):<100} Popularity: {str(val["popularity"]) + '/100':<10} Followers: {val["followers"]["total"]:<20,}")
                 print("-" * 200)
 
-        elif choice == "3":
+        elif choice == "3": # top tracks
             limit = util.choice_validation("Enter # of tracks (1-50): ", 50)
             print()
 
@@ -40,7 +40,7 @@ def user_things(local_token, local_expiry):
                 print(f"{str(i+1) + '. ' + val["name"]:<70} Popularity: {str(val["popularity"]) + '/100':<10} Artist: {val["artists"][0]["name"]:<10}")
                 print("-" * 150)
 
-        elif choice == "4":
+        elif choice == "4": # playlist options
             playlist_tests.playlist_things(token, expiry)
 
         elif choice == str(len(util.user_options)):
