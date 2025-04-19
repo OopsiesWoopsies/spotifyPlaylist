@@ -23,6 +23,11 @@ def get_songs(token: str, artist_id: str) -> dict:
 
     return json_result
 
-def get_playlist(token: str, playlist_name: str) -> dict:
-    url = f"https://api.spotify.com/v1/search?q={playlist_name}&type=playlist&limit=50"
-    # make use of get_page
+def get_playlist(token: str, keyword: str) -> dict:
+    url = f"https://api.spotify.com/v1/search?q={keyword}&type=playlist&limit=50"
+    headers = get_token.get_auth_headers(token)
+
+    result = get(url, headers=headers)
+    json_result = json.loads(result.content)
+
+    return json_result
