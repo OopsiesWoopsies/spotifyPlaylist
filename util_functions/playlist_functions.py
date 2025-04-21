@@ -41,45 +41,97 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
         print("Nothing in keyword")
         return
 
-    playlist_id = create_playlist(token, keyword + " playlist")["id"]
+
+    def check_playlist_availability(pick: int) -> int:
+        nonlocal json_result, addition_attempt, json_result_playlist_pages
+        offset = (pick // 50) * 50
+        page_index = pick // 50
+        addition_attempt += 1
+        pick %= 50
+
+        if page_index not in json_result_playlist_pages:
+            json_result = searching.get_playlist(token, keyword, str(offset))
+            json_result_playlist_pages[page_index] = json_result
+
+        json_result = json_result_playlist_pages[page_index]
+
+        return pick
+
+
+    def check_song_availability(pick: int) -> int:
+        nonlocal json_result, local_addition_attempt, href, json_result_song_pages
+        offset = (pick // 100) * 100
+        page_index = pick // 100
+        local_addition_attempt += 1
+        pick %= 100
+
+        if page_index not in json_result_song_pages:
+            href += f"?offset={offset}"
+            result = get(href, headers=headers)
+            json_result = json.loads(result.content)
+            json_result_song_pages[page_index] = json_result
+
+        json_result = json_result_song_pages[page_index]
+
+        return pick
+
+
     json_result = searching.get_playlist(token, keyword)  # check keyword cases if needed
+    total_playlists = json_result["total"]
     song_id_set = set()
     # local cache of json playlist search results
-    json_result_pages= {
-        0: json_result["items"]
+    json_result_playlist_pages = {
+        0: json_result
     }
-    offset = 0
     addition_attempt = 0
-    max_addition_attempt = 1000
-
-    url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+    MAX_ADDITION_ATTEMPT = 100
+    MAX_LOCAL_ADDITION_ATTEMPT = 50
     headers = get_token.get_auth_headers(token)
 
-    # algorithm for adding songs (ensure no duplicate songs) **
-    # sets offset, finds page number, and adds a randomly selected song from the randomly selected playlist
-    while len(song_id_set) < song_amount and addition_attempt < max_addition_attempt:
-        playlist_pick = randint(0,json_result["total"]-1)
-        offset = (playlist_pick // 50) * 50
-        page_index = playlist_pick // 50
-        if page_index not in json_result_pages:
-            json_result = searching.get_playlist(token, keyword, str(offset))
-            json_result_pages[page_index] = json_result["items"]
-        else:
-            json_result = json_result_pages[page_index]
+    # Sets offset, finds page number, and adds a randomly selected song from the randomly selected playlist
+    while len(song_id_set) < song_amount and addition_attempt < MAX_ADDITION_ATTEMPT:
+        playlist_pick = randint(0,total_playlists-1)
+        playlist_pick = check_playlist_availability(playlist_pick)
 
-        playlist_pick %= 50
+        # Checks if the playlist is still available
+        while json_result["items"][playlist_pick] is None:
+            playlist_pick = randint(0, total_playlists-1)
+            playlist_pick = check_playlist_availability(playlist_pick)
+
         playlist_tracks = json_result["items"][playlist_pick]["tracks"]
-        song_pick = randint(0, playlist_tracks["total"]-1)
-        href = playlist_tracks["href"]
+        addition_success = 0
+        local_addition_attempt = 0
 
+        href = playlist_tracks["href"]
         result = get(href, headers=headers)
         json_result = json.loads(result.content)
 
-        # goal: create offsetting for song picking, check for song already in set (remember addition attempts), decide what to do if duplicate
+        json_result_song_pages = {
+            0: json_result
+        }
+        # Adds songs
+        while addition_success < 10 and local_addition_attempt < MAX_LOCAL_ADDITION_ATTEMPT and len(song_id_set) < song_amount:
+            href = playlist_tracks["href"]
+            song_pick = randint(0, playlist_tracks["total"] - 1)
+            song_pick = check_song_availability(song_pick)
 
-    # requests to add songs on to playlist
+            # Checks if the song is still available
+            while json_result["items"][song_pick] is None:
+                song_pick = randint(0, json_result["total"] - 1)
+                song_pick = check_song_availability(song_pick)
+
+            song = f"spotify:track:{json_result["items"][song_pick]["track"]["id"]}"
+            if song not in song_id_set:
+                song_id_set.add(song)
+                addition_success += 1
+            else:
+                print("duplicate!")
+
+    # Creates a playlist and requests to add songs on to playlist
+    playlist_id = create_playlist(token, keyword + " playlist")["id"]
+    url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
     data = {
-            "uris": list(song_id_set)
+        "uris": list(song_id_set)
     }
 
     data = json.dumps(data)

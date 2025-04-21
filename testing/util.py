@@ -18,10 +18,10 @@ def print_choices(arr: list) -> None:
         print(f"{i+1}. {val}")
     print()
 
-def choice_validation(message: str, cap: int) -> int:
+def choice_validation(message: str, cap: int, minimum: int = 1) -> int:
     while True:
         choice = input(message)
-        if choice.isdigit() and 0 < int(choice) <= cap:
+        if choice.isdigit() and minimum <= int(choice) <= cap:
             return int(choice)
         else:
             print("Invalid #.")

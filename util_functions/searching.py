@@ -30,4 +30,4 @@ def get_playlist(token: str, keyword: str, offset: str = "0") -> dict:
     result = get(url, headers=headers)
     json_result = json.loads(result.content)
 
-    return json_result
+    return json_result["playlists"]
