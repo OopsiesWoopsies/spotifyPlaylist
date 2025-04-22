@@ -2,21 +2,22 @@ import util_functions
 
 choices = ["Current User Options", "Artists", "Quit"]
 user_options = ["Current User", "User Top Artists", "User Top Tracks", "Playlist Options", "Go Back"]
-playlist_options = ["Get Playlists & Tracks", "Create Playlist", "Edit Playlist Information", "Update Playlist", "Auto-Playlist", "Go Back"] # Make it so you can view everything in a playlist since the limit is 50
+playlist_options = ["Get Playlists & Tracks", "Create Playlist", "Auto-Playlist", "Remove Playlist", "Edit Playlist Information", "Go Back"] # Make it so you can view everything in a playlist since the limit is 50
 
 edit_playlist = ["Change Name", "Change Description", "Toggle Publication", "Toggle Collaborate", "Go Back"]
-update_playlist = ["Add a Song", "Remove a Song", "Go Back"]
-
 
 time_range_choices = ["~4 weeks", "~6 months", "~1 year"]
 page_options = ["Next", "Previous", "Back"]
 
+
 # ----------------------------------------------------------------------------------------------------------------------
+
 
 def print_choices(arr: list) -> None:
     for i, val in enumerate(arr):
         print(f"{i+1}. {val}")
     print()
+
 
 def choice_validation(message: str, cap: int, minimum: int = 1) -> int:
     while True:
@@ -25,6 +26,7 @@ def choice_validation(message: str, cap: int, minimum: int = 1) -> int:
             return int(choice)
         else:
             print("Invalid #.")
+
 
 def view_with_pages(token: str, json_result: dict) -> None:
     while True:

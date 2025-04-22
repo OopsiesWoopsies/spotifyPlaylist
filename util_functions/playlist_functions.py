@@ -1,23 +1,24 @@
 import json
 
-from requests import get, post
+from requests import get, post, delete
 
 from util_functions import get_token, util, searching
 from random import randint
 
 
 def get_playlists(token: str) -> dict:
-    url = "https://api.spotify.com/v1/me/playlists"
+    url = util.SPOTIFY_API_URL + "/me/playlists"
     header = get_token.get_auth_headers(token)
 
     # requests to get current user's playlists
     result = get(url, headers=header)
     json_result = json.loads(result.content)
 
-    return json_result["items"]
+    return json_result
+
 
 def create_playlist(token: str, playlist_name: str = "New Playlist", description: str = "", public: bool = False) -> dict:
-    url = "https://api.spotify.com/v1/me/playlists"
+    url = util.SPOTIFY_API_URL + "/me/playlists"
     headers = get_token.get_auth_headers(token)
     data = {
         "name": playlist_name,
@@ -32,13 +33,14 @@ def create_playlist(token: str, playlist_name: str = "New Playlist", description
 
     return json_result
 
+
 def get_playlist_tracks(token, href: str) -> dict:
     return util.get_json_from_href(token, href)
 
 
 def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
     if keyword == "":
-        print("Nothing in keyword")
+        print("Nothing in keyword, no playlist created")
         return
 
 
@@ -120,16 +122,14 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
                 song_pick = randint(0, json_result["total"] - 1)
                 song_pick = check_song_availability(song_pick)
 
-            song = f"spotify:track:{json_result["items"][song_pick]["track"]["id"]}"
+            song = json_result["items"][song_pick]["track"]["uri"]
             if song not in song_id_set:
                 song_id_set.add(song)
                 addition_success += 1
-            else:
-                print("duplicate!")
 
     # Creates a playlist and requests to add songs on to playlist
     playlist_id = create_playlist(token, keyword + " playlist")["id"]
-    url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+    url = util.SPOTIFY_API_URL + f"/playlists/{playlist_id}/tracks"
     data = {
         "uris": list(song_id_set)
     }
@@ -140,3 +140,10 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
 
 def manual_add_song_to_playlist(token: str, playlist_id: str, song_id: str) -> None: # Gonna be empty for a while (not sure if feature)
     pass
+
+
+def remove_playlist_from_library(token: str, playlist_id: str) -> None:
+    url = util.SPOTIFY_API_URL + f"/playlists/{playlist_id}/followers"
+    headers = get_token.get_auth_headers(token)
+
+    delete(url, headers=headers)
