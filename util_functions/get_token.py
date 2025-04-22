@@ -13,12 +13,14 @@ client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 refresh_token = os.getenv("REFRESH_TOKEN")
 
+
 def encode_auth() -> str:
     auth = client_id + ":" + client_secret
     auth_bytes = auth.encode("utf-8")
     auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
 
     return auth_base64
+
 
 def get_refresh_token() -> tuple:
     redir = "http://127.0.0.1:8888/callback"
@@ -74,6 +76,7 @@ def get_refresh_token() -> tuple:
     expiry = json_result["expires_in"] + datetime.now().timestamp()
     return re_token, token, expiry
 
+
 def get_token() -> tuple:
     global refresh_token
     url = "https://accounts.spotify.com/api/token"
@@ -104,12 +107,14 @@ def get_token() -> tuple:
 
     return token, expiry
 
+
 def check_expiration(token: str, expiry: float) -> tuple:
     if datetime.now().timestamp() >= expiry:
         print("Expired token, refreshing")
         token, expiry = get_token()
 
     return token, expiry
+
 
 def get_auth_headers(token: str) -> dict:
     return {"Authorization": "Bearer " + token}
