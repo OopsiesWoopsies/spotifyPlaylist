@@ -2,9 +2,9 @@ import util_functions
 
 choices = ["Current User Options", "Artists", "Quit"]
 user_options = ["Current User", "User Top Artists", "User Top Tracks", "Playlist Options", "Go Back"]
-playlist_options = ["Get Playlists & Tracks", "Create Playlist", "Auto-Playlist", "Remove Playlist", "Edit Playlist Information", "Go Back"] # Make it so you can view everything in a playlist since the limit is 50
+playlist_options = ["Get Playlists & Tracks", "Create Playlist", "Auto-Playlist", "Remove Playlist", "Edit Playlist Information", "Go Back"]
 
-edit_playlist = ["Change Name", "Change Description", "Toggle Publication", "Toggle Collaborate", "Go Back"]
+edit_playlist_options = ["Change Name", "Change Description", "Go Back"]
 
 time_range_choices = ["~4 weeks", "~6 months", "~1 year"]
 page_options = ["Next", "Previous", "Back"]

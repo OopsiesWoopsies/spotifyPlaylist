@@ -1,6 +1,6 @@
 import json
 
-from requests import get, post, delete
+from requests import get, post, delete, put
 
 from util_functions import get_token, util, searching
 from random import randint
@@ -138,12 +138,19 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
     post(url, data=data, headers=headers)
 
 
-def manual_add_song_to_playlist(token: str, playlist_id: str, song_id: str) -> None: # Gonna be empty for a while (not sure if feature)
-    pass
-
-
 def remove_playlist_from_library(token: str, playlist_id: str) -> None:
     url = util.SPOTIFY_API_URL + f"/playlists/{playlist_id}/followers"
     headers = get_token.get_auth_headers(token)
 
     delete(url, headers=headers)
+
+
+def edit_playlist(token: str, playlist_id: str, field_change: str, new_field: str) -> None:
+    url = util.SPOTIFY_API_URL + f"/playlists/{playlist_id}"
+    headers = get_token.get_auth_headers(token)
+    data = {
+        field_change: new_field
+    }
+
+    data = json.dumps(data)
+    put(url, headers=headers, data=data)
