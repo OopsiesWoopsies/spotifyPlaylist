@@ -1,4 +1,4 @@
-from util_functions import get_token, util
+from spotify_util_functions import get_token, util
 
 from requests import get
 import json

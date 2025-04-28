@@ -1,6 +1,6 @@
 import json
 
-from util_functions import get_token
+from spotify_util_functions import get_token
 from requests import get
 
 
