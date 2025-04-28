@@ -10,3 +10,4 @@ def setup(bot: commands.Bot, GUILD_ID) -> None:
     @bot.tree.command(name="amigo", description="Say hola", guild=GUILD_ID)
     async def hello(interaction: discord.Interaction):
         await interaction.response.send_message(user_functions.get_current_user(spotify_token),ephemeral=True)
+
