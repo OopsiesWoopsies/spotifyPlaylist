@@ -1,4 +1,4 @@
-import util_functions
+import spotify_util_functions
 
 choices = ["Current User Options", "Artists", "Quit"]
 user_options = ["Current User", "User Top Artists", "User Top Tracks", "Playlist Options", "Go Back"]
@@ -38,12 +38,12 @@ def view_with_pages(token: str, json_result: dict) -> None:
             return
 
         if choice == 1:
-             check_result = util_functions.util.get_page(token, json_result, "next")
+             check_result = spotify_util_functions.util.get_page(token, json_result, "next")
              if "error" not in check_result:
                  json_result = check_result
 
         elif choice == 2:
-            check_result = util_functions.util.get_page(token, json_result, "previous")
+            check_result = spotify_util_functions.util.get_page(token, json_result, "previous")
             if "error" not in check_result:
                 json_result = check_result
 

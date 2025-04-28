@@ -2,7 +2,7 @@ import json
 
 from requests import get, post, delete, put
 
-from util_functions import get_token, util, searching
+from spotify_util_functions import get_token, util, searching
 from random import randint
 
 

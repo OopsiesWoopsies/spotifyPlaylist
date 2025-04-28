@@ -1,4 +1,4 @@
-from util_functions import get_token, searching
+from spotify_util_functions import get_token, searching
 
 import util, user_tests
 

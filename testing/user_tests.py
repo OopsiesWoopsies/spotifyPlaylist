@@ -1,4 +1,4 @@
-from util_functions import get_token, user_functions
+from spotify_util_functions import get_token, user_functions
 
 import util, playlist_tests
 
