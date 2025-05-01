@@ -2,10 +2,7 @@ import discord, slash_commands
 from discord.ext import commands
 import logging
 
-from dotenv import load_dotenv
 import os
-
-load_dotenv()
 
 bot_token = os.getenv("DISCORD_BOT_TOKEN")
 GUILD_ID = discord.Object(id=1366142338342322397)

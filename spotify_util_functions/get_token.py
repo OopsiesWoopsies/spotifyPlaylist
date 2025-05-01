@@ -4,15 +4,24 @@ from dotenv import load_dotenv
 import os
 import base64
 
+from flask import Flask
+
 from requests import post, get
 import json
 
 load_dotenv()
 
+app = Flask(__name__)
+
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 refresh_token = os.getenv("REFRESH_TOKEN")
 
+@app.route("/")
+def home():
+    return "AMIGOS"
+
+# app.run(host="0.0.0.0", port=50100, debug=True)
 
 def encode_auth() -> str:
     auth = client_id + ":" + client_secret

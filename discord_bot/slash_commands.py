@@ -9,4 +9,6 @@ spotify_token, spotify_expiry = get_token.get_token()
 def setup(bot: commands.Bot, GUILD_ID) -> None:
     @bot.tree.command(name="amigo", description="Say hola", guild=GUILD_ID)
     async def hello(interaction: discord.Interaction):
+        user_id = interaction.user.id # check if id is in env file before printing (same for every user related slash command)
+        print(user_id)
         await interaction.response.send_message(user_functions.get_current_user(spotify_token),ephemeral=True)
