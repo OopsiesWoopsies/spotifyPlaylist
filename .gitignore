@@ -3,7 +3,7 @@
 *.env
 
 # Ignore user.json file
-*user.json
+user.json
 =======
 # Byte-compiled / optimized / DLL files
 __pycache__/
