@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 import os
 import base64
 
-from flask import Flask
+from flask import Flask, request
+import webbrowser
+import threading
 
 from requests import post, get
 import json
@@ -13,7 +15,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-client_id = os.getenv("CLIENT_ID")
+client_id = os.getenv("CLIENT_ID") # overhaul get_token to make it work with multiple tokens
 client_secret = os.getenv("CLIENT_SECRET")
 refresh_token = os.getenv("REFRESH_TOKEN")
 
@@ -46,11 +48,9 @@ def get_refresh_token() -> tuple:
 
     print(response.status_code, response.url)
 
-    code = input("Code: ")
-
     auth_base64 = encode_auth()
     parameters = {
-        "code": code, # USE A WEBSERVER TO TAKE CODE FROM URL
+        # "code": code, # USE A WEBSERVER TO TAKE CODE FROM URL
         "redirect_uri": redir,
         "grant_type": "authorization_code"
     }

@@ -14,6 +14,7 @@ def setup(bot):
         app_commands.Choice(name='authorize', value='authorize'),
     ])
     async def user(interaction: discord.Interaction, user: app_commands.Choice[str]):
+        global spotify_expiry, spotify_token
         user_id = interaction.user.id  # check if id is in env file before printing (same for every user related slash command)
         print(user_id)
 
@@ -21,4 +22,5 @@ def setup(bot):
             await interaction.response.send_message(user_functions.get_current_user(spotify_token), ephemeral=True)
 
         if user.value == "authorize":
-            pass
+            print("authorizing")
+            # spotify_token, spotify_expiry =
