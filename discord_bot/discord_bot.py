@@ -16,8 +16,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     try:
-        bot.tree.add_command(slash_commands.User(name="user", description="User related commands"))
-
+        # bot.tree.add_command(slash_commands.S(name="user", description="User related commands"))
+        slash_commands.setup(bot)
         await bot.tree.sync(guild=slash_commands.GUILD_ID)
         print(f"I, {bot.user.name}, am ready")
     except Exception as e:
