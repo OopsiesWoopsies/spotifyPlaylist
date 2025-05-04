@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from utils.user_tokens import spotify_tokens # AYE
+
 from dotenv import load_dotenv
 import os
 import base64
@@ -17,7 +19,6 @@ app = Flask(__name__)
 
 client_id = os.getenv("CLIENT_ID") # overhaul get_token to make it work with multiple tokens
 client_secret = os.getenv("CLIENT_SECRET")
-refresh_token = os.getenv("REFRESH_TOKEN")
 
 @app.route("/")
 def home():

@@ -2,6 +2,8 @@ import discord, slash_commands
 from discord.ext import commands
 import logging
 
+from utils import user_tokens
+
 import os
 
 bot_token = os.getenv("DISCORD_BOT_TOKEN")
@@ -25,5 +27,7 @@ async def on_ready():
 @bot.event
 async def on_disconnect(): # If it needs to reconnect make it so it doesn't run setup again or sync
     print("BOT DISCONNECTED")
+    user_tokens.write_json()
+
 
 bot.run(bot_token, log_handler=handler, log_level=logging.DEBUG)

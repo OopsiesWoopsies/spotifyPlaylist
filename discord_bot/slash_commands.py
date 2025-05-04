@@ -1,10 +1,11 @@
 from spotify_util_functions import get_token, user_functions
+from utils.user_tokens import spotify_tokens
 
 import discord
 from discord import app_commands
 
 
-spotify_token, spotify_expiry = get_token.get_token() # change this to get user specific token using dictionary
+# spotify_token, spotify_expiry = get_token.get_token() # change this to get user specific token using dictionary
 GUILD_ID = discord.Object(id=1366142338342322397)
 
 def setup(bot):
@@ -14,12 +15,14 @@ def setup(bot):
         app_commands.Choice(name='authorize', value='authorize'),
     ])
     async def user(interaction: discord.Interaction, user: app_commands.Choice[str]):
-        global spotify_expiry, spotify_token
-        user_id = interaction.user.id  # check if id is in env file before printing (same for every user related slash command)
-        print(user_id)
+        user_id = str(interaction.user.id)
 
-        if user.value == "current_user":
-            await interaction.response.send_message(user_functions.get_current_user(spotify_token), ephemeral=True)
+        print(user_id)
+        if user_id in spotify_tokens["users"]: # put spotify token in json as well as expiration date in get_token()
+            if user.value == "current_user":
+                await interaction.response.send_message(user_functions.get_current_user(spotify_tokens["users"][user_id][""]), ephemeral=True)
+        else:
+            await interaction.response.send_message("Authorize first with user authorize!", ephemeral=True)
 
         if user.value == "authorize":
             print("authorizing")
