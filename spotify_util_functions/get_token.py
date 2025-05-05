@@ -87,8 +87,7 @@ def get_refresh_token() -> tuple:
     return re_token, token, expiry
 
 
-def get_token() -> tuple:
-    global refresh_token
+def get_token(refresh_token: str) -> tuple:
     url = "https://accounts.spotify.com/api/token"
     token = None
     expiry = None
@@ -118,10 +117,10 @@ def get_token() -> tuple:
     return token, expiry
 
 
-def check_expiration(token: str, expiry: float) -> tuple:
+def check_expiration(token: str, refresh_token: str, expiry: float) -> tuple:
     if datetime.now().timestamp() >= expiry:
         print("Expired token, refreshing")
-        token, expiry = get_token()
+        token, expiry = get_token(refresh_token)
 
     return token, expiry
 

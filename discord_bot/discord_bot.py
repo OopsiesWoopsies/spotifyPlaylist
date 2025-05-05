@@ -5,6 +5,7 @@ import logging
 from utils import user_tokens
 
 import os
+import atexit
 
 bot_token = os.getenv("DISCORD_BOT_TOKEN")
 
@@ -14,6 +15,8 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+
 @bot.event
 async def on_ready():
     try:
@@ -28,6 +31,14 @@ async def on_ready():
 async def on_disconnect(): # If it needs to reconnect make it so it doesn't run setup again or sync
     print("BOT DISCONNECTED")
     user_tokens.write_json()
+    print("SAVED")
+
+
+def on_exit():
+    user_tokens.write_json()
+    print("SAVED")
+
+atexit.register(on_exit)
 
 
 bot.run(bot_token, log_handler=handler, log_level=logging.DEBUG)
