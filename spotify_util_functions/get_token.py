@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from utils.user_tokens import spotify_tokens # AYE
-
 from dotenv import load_dotenv
 import os
 import base64
@@ -9,9 +7,11 @@ import base64
 from flask import Flask, request
 import webbrowser
 import threading
+import asyncio
 
 from requests import post, get
 import json
+import urllib.parse
 
 load_dotenv()
 
@@ -19,12 +19,47 @@ app = Flask(__name__)
 
 client_id = os.getenv("CLIENT_ID") # overhaul get_token to make it work with multiple tokens
 client_secret = os.getenv("CLIENT_SECRET")
+test_refresh_token = os.getenv("TEST_REFRESH_TOKEN")
+auth_code = None
 
-@app.route("/")
-def home():
-    return "AMIGOS"
+@app.route("/callback")
+def callback() -> any:
+    global auth_code
+    auth_code = request.args.get("code")
+    print("auth_code:",auth_code)
+    shutdown_flask()
+    return "Authorization complete"
 
-# app.run(host="0.0.0.0", port=50100, debug=True)
+
+def run_flask():
+    app.run(host="0.0.0.0",port=5000, use_reloader=False)
+
+
+def shutdown_flask() -> None: # consider not shutting down
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+
+
+async def login(url: str) -> None:
+    global auth_code
+    auth_code = None
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+
+    webbrowser.open_new(url)
+    print("webbrowser opened")
+
+    while auth_code is None:
+        await asyncio.sleep(1)
+
+    threading.Event()
+
+
+def get_auth_headers(token: str) -> dict:
+    return {"Authorization": "Bearer " + token}
+
 
 def encode_auth() -> str:
     auth = client_id + ":" + client_secret
@@ -34,8 +69,8 @@ def encode_auth() -> str:
     return auth_base64
 
 
-def get_refresh_token() -> tuple:
-    redir = "http://127.0.0.1:8888/callback"
+async def get_refresh_token() -> tuple:
+    redir = "http://localhost:5000/callback"
 
     parameters = {
         "client_id": client_id,
@@ -47,11 +82,15 @@ def get_refresh_token() -> tuple:
 
     response = get("https://accounts.spotify.com/authorize", params = parameters)
 
-    print(response.status_code, response.url)
+    # print(response.status_code, response.url)
+
+    print("logging in")
+    await login(response.url)
+    print("done")
 
     auth_base64 = encode_auth()
     parameters = {
-        # "code": code, # USE A WEBSERVER TO TAKE CODE FROM URL
+        "code": auth_code, # USE A WEBSERVER TO TAKE CODE FROM URL
         "redirect_uri": redir,
         "grant_type": "authorization_code"
     }
@@ -80,7 +119,9 @@ def get_refresh_token() -> tuple:
     with open("../.env", "w") as f:
         f.write("CLIENT_ID =" + my_dict["CLIENT_ID"])
         f.write("CLIENT_SECRET =" + my_dict["CLIENT_SECRET"])
-        f.write("REFRESH_TOKEN = \"" + my_dict["REFRESH_TOKEN"] + "\"")
+        f.write("DISCORD_BOT_TOKEN =" + my_dict["DISCORD_BOT_TOKEN"])
+        f.write("DISCORD_SERVER_ID =" + my_dict["DISCORD_SERVER_ID"])
+        f.write("TEST_REFRESH_TOKEN =" + my_dict["TEST_REFRESH_TOKEN"])
 
     print(json_result)
     expiry = json_result["expires_in"] + datetime.now().timestamp()
@@ -106,7 +147,7 @@ def get_token(refresh_token: str) -> tuple:
     if "error" in json_result:
         if json_result["error"] == "invalid_grant":
             print("Invalid refresh token, fetching a new one")
-            refresh_token, token, expiry = get_refresh_token()
+            refresh_token, token, expiry = asyncio.run(get_refresh_token())
         else:
             print("ERROR: DESCRIPTION: " + json_result["error_description"])
     else:
@@ -123,7 +164,3 @@ def check_expiration(token: str, refresh_token: str, expiry: float) -> tuple:
         token, expiry = get_token(refresh_token)
 
     return token, expiry
-
-
-def get_auth_headers(token: str) -> dict:
-    return {"Authorization": "Bearer " + token}

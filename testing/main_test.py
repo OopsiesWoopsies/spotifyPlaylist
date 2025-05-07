@@ -3,7 +3,7 @@ from spotify_util_functions import get_token, searching
 import util, user_tests
 
 if __name__ == "__main__":
-    token, expiry = get_token.get_token()
+    token, expiry = get_token.get_token(get_token.test_refresh_token)
 
     if token is None:
         print("Token is cooked! Something went wrong.")
@@ -13,10 +13,10 @@ if __name__ == "__main__":
         choice = input("Enter #: ")
         print()
 
-        token, expiry = get_token.check_expiration(token, expiry)
+        token, expiry = get_token.check_expiration(token, get_token.test_refresh_token, expiry)
 
         if choice == "1":                                       # User related options
-            user_tests.user_things(token, expiry)
+            user_tests.user_things(token, get_token.test_refresh_token, expiry)
 
         elif choice == "2":
             while True:
@@ -26,7 +26,7 @@ if __name__ == "__main__":
                     break
                 print("Not a valid name.\n")
 
-            token, expiry = get_token.check_expiration(token, expiry)
+            token, expiry = get_token.check_expiration(token, get_token.test_refresh_token, expiry)
 
             json_result = searching.search_for_artist(token, artist_name)
             if json_result is not None and "error" not in json_result:

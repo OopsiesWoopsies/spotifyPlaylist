@@ -17,7 +17,7 @@ def setup(bot):
             token = new_token
             spotify_tokens["users"][user_id]["spotify_token"] = token
 
-        # Consider updating json file ALSO FIX TESTING FILES FROM UPDATED PARAMETERS
+        # Consider updating json file
 
         return token, expiration
 
@@ -27,8 +27,8 @@ def setup(bot):
         app_commands.Choice(name='current-user', value='current_user'),
         app_commands.Choice(name='authorize', value='authorize'),
     ])
-    async def user(interaction: discord.Interaction, user: app_commands.Choice[str]):
-        user_id = str(interaction.user.id)
+    async def user(ctx: discord.Interaction, user: app_commands.Choice[str]):
+        user_id = str(ctx.user.id)
         print(user_id)
         if user_id in spotify_tokens["users"]:
             spotify_token_info = spotify_tokens["users"][user_id]
@@ -41,9 +41,9 @@ def setup(bot):
             print(spotify_token)
 
             if user.value == "current_user":
-                await interaction.response.send_message(user_functions.get_current_user(spotify_token), ephemeral=True)
+                await ctx.response.send_message(user_functions.get_current_user(spotify_token), ephemeral=True)
         else:
-            await interaction.response.send_message("Authorize first with user authorize!", ephemeral=True)
+            await ctx.response.send_message("Authorize first with user authorize!", ephemeral=True)
 
         if user.value == "authorize":
             print("authorizing")

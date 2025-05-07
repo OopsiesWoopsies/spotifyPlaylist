@@ -3,13 +3,13 @@ from spotify_util_functions import get_token, user_functions
 import util, playlist_tests
 
 
-def user_things(local_token, local_expiry):
+def user_things(local_token: str, refresh_token: str, local_expiry: float) -> None:
     while True:
         util.print_choices(util.user_options)
         choice = input("Enter #: ")
         print()
 
-        token, expiry = get_token.check_expiration(local_token, local_expiry)
+        token, expiry = get_token.check_expiration(local_token, refresh_token, local_expiry)
 
         if choice == "1": # user info
             json_result = user_functions.get_current_user(token)
@@ -41,7 +41,7 @@ def user_things(local_token, local_expiry):
                 print("-" * 150)
 
         elif choice == "4": # playlist options
-            playlist_tests.playlist_things(token, expiry)
+            playlist_tests.playlist_things(token, refresh_token, expiry)
 
         elif choice == str(len(util.user_options)):
             return

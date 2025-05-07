@@ -38,7 +38,7 @@ def on_exit():
     user_tokens.write_json()
     print("SAVED")
 
-atexit.register(on_exit)
 
-
-bot.run(bot_token, log_handler=handler, log_level=logging.DEBUG)
+if __name__ == "__main__":
+    atexit.register(on_exit)
+    bot.run(bot_token, log_handler=handler, log_level=logging.DEBUG)
