@@ -3,7 +3,7 @@ from spotify_util_functions import get_token, searching
 import util, user_tests
 
 if __name__ == "__main__":
-    token, expiry = get_token.get_token(get_token.test_refresh_token)
+    token, expiry = get_token.get_token(get_token.test_refresh_token, test=True)
 
     if token is None:
         print("Token is cooked! Something went wrong.")

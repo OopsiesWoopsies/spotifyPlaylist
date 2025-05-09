@@ -93,29 +93,12 @@ async def get_refresh_token() -> tuple:
 
     token = json_result["access_token"]
     re_token = json_result["refresh_token"]
-
-    with open("../.env", "r") as f:
-        my_dict = {}
-        for line in f.readlines():
-            try:
-                key, value = line.split('=')
-                my_dict[key[:-1]] = value
-            except ValueError:
-                # syntax error
-                print("Reading dotenv gone wrong, syntax error")
-    my_dict["TEST_REFRESH_TOKEN"] = re_token
-    with open("../.env", "w") as f:
-        f.write("CLIENT_ID =" + my_dict["CLIENT_ID"])
-        f.write("CLIENT_SECRET =" + my_dict["CLIENT_SECRET"])
-        f.write("DISCORD_BOT_TOKEN =" + my_dict["DISCORD_BOT_TOKEN"])
-        f.write("DISCORD_SERVER_ID =" + my_dict["DISCORD_SERVER_ID"])
-        f.write("TEST_REFRESH_TOKEN =" + my_dict["TEST_REFRESH_TOKEN"])
-
     expiry = json_result["expires_in"] + datetime.now().timestamp()
+
     return re_token, token, expiry
 
 
-def get_token(refresh_token: str) -> tuple:
+def get_token(refresh_token: str, test: bool = False) -> tuple:
     url = "https://accounts.spotify.com/api/token"
     token = None
     expiry = None
@@ -135,6 +118,9 @@ def get_token(refresh_token: str) -> tuple:
         if json_result["error"] == "invalid_grant":
             print("Invalid refresh token, fetching a new one")
             refresh_token, token, expiry = asyncio.run(get_refresh_token())
+            print(test)
+            if test:
+                write_to_env(refresh_token)
         else:
             print("ERROR: DESCRIPTION: " + json_result["error_description"])
     else:
@@ -151,3 +137,21 @@ def check_expiration(token: str, refresh_token: str, expiry: float) -> tuple:
         token, expiry = get_token(refresh_token)
 
     return token, expiry
+
+
+def write_to_env(refresh_token: str):
+    with open("../.env", "r") as f:
+        my_dict = {}
+        for line in f.readlines():
+            try:
+                key, value = line.split('=')
+                my_dict[key[:-1]] = value
+            except ValueError:
+                # syntax error
+                print("Reading dotenv gone wrong, syntax error")
+    with open("../.env", "w") as f:
+        f.write("CLIENT_ID =" + my_dict["CLIENT_ID"])
+        f.write("CLIENT_SECRET =" + my_dict["CLIENT_SECRET"])
+        f.write("DISCORD_BOT_TOKEN =" + my_dict["DISCORD_BOT_TOKEN"])
+        f.write("DISCORD_SERVER_ID =" + my_dict["DISCORD_SERVER_ID"])
+        f.write("TEST_REFRESH_TOKEN = \"" + refresh_token + "\"")
