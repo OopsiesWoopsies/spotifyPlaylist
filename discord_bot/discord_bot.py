@@ -22,21 +22,17 @@ async def on_ready():
     try:
         slash_commands.setup(bot)
         await bot.tree.sync(guild=slash_commands.GUILD_ID)
-        print(f"I, {bot.user.name}, am ready")
     except Exception as e:
         print(f"FAILED {e}")
 
 
 @bot.event
 async def on_disconnect(): # If it needs to reconnect make it so it doesn't run setup again or sync
-    print("BOT DISCONNECTED")
     user_tokens.write_json()
-    print("SAVED")
 
 
 def on_exit():
     user_tokens.write_json()
-    print("SAVED")
 
 
 if __name__ == "__main__":

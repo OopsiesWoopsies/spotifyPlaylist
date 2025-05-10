@@ -116,9 +116,7 @@ def get_token(refresh_token: str, test: bool = False) -> tuple:
 
     if "error" in json_result:
         if json_result["error"] == "invalid_grant":
-            print("Invalid refresh token, fetching a new one")
             refresh_token, token, expiry = asyncio.run(get_refresh_token())
-            print(test)
             if test:
                 write_to_env(refresh_token)
         else:
@@ -126,14 +124,12 @@ def get_token(refresh_token: str, test: bool = False) -> tuple:
     else:
         token = json_result["access_token"]
         expiry = json_result["expires_in"] + datetime.now().timestamp()
-        print("Token fetched")
 
     return token, expiry
 
 
 def check_expiration(token: str, refresh_token: str, expiry: float) -> tuple:
     if datetime.now().timestamp() >= expiry:
-        print("Expired token, refreshing")
         token, expiry = get_token(refresh_token)
 
     return token, expiry
@@ -148,7 +144,7 @@ def write_to_env(refresh_token: str):
                 my_dict[key[:-1]] = value
             except ValueError:
                 # syntax error
-                print("Reading dotenv gone wrong, syntax error")
+                print("Reading dotenv gone wrong")
     with open("../.env", "w") as f:
         f.write("CLIENT_ID =" + my_dict["CLIENT_ID"])
         f.write("CLIENT_SECRET =" + my_dict["CLIENT_SECRET"])
