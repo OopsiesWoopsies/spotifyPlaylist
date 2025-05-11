@@ -1,4 +1,4 @@
-from spotify_util_functions import get_token, user_functions
+from spotify_util_functions import get_token, user_functions, playlist_functions, util
 from utils.user_tokens import spotify_tokens
 from utils import user_tokens
 
@@ -6,6 +6,7 @@ import discord
 from discord import app_commands
 
 import os
+import asyncio
 
 
 GUILD_ID = discord.Object(id=os.getenv("DISCORD_SERVER_ID"))
@@ -59,10 +60,106 @@ def setup(bot):
 
 
     @bot.tree.command(name="generate_playlist", description="Generate a random playlist", guild=GUILD_ID)
-    async def playlist_generation(interaction: discord.Interaction, keyword: str, number_of_songs: int = 30):
+    async def playlist_generation(interaction: discord.Interaction, keyword: str, song_amount: int = 30):
         user_id = str(interaction.user.id)
         spotify_token = check_user_authorized(user_id)
         if not spotify_token:
             await interaction.response.send_message("Authorize first with user authorize!", ephemeral=True)
             return
 
+        if song_amount < 30:
+            song_amount = 30
+        if song_amount > 100:
+            song_amount = 100
+
+        await interaction.response.send_message(f"Generating a playlist with {song_amount} songs and {keyword}...")
+        playlist_functions.generate_playlist(spotify_token,keyword, song_amount)
+        await interaction.followup.send("Playlist generated! Check your spotify")
+
+
+    @bot.tree.command(name="delete_playlist", description="Delete a playlist from your library", guild=GUILD_ID)
+    async def delete_playlist(interaction: discord.Interaction):
+        user_id = str(interaction.user.id)
+        spotify_token = check_user_authorized(user_id)
+        if not spotify_token:
+            await interaction.response.send_message("Authorize first with user authorize!", ephemeral=True)
+            return
+
+        def check(reaction, user):
+            nonlocal number_emojis
+            return user == interaction.user and str(reaction.emoji) in ["⬅️", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "➡️"] and reaction.message.id == message.id
+
+
+        def get_playlist_names(json_result: dict) -> str:
+            names = ""
+            for i, val in enumerate(json_result):
+                names += f"{i+1}. " + val["name"] + "\n"
+
+            return names
+
+
+        async def remove_playlist(playlist_id: str, playlist_name: str) -> None:
+            nonlocal interaction
+            playlist_functions.remove_playlist_from_library(spotify_token, playlist_id)
+            await interaction.followup.send(f"Removed {playlist_name} from your library")
+            pass
+            # remove all the cached pages after the affected page and re-add the new one
+
+
+        number_emojis = {
+            1: "1️⃣",
+            2: "2️⃣",
+            3: "3️⃣",
+            4: "4️⃣",
+            5: "5️⃣"
+        }
+        user_spotify_playlists = playlist_functions.get_playlists(spotify_token, limit=5)
+        next_href = user_spotify_playlists["next"]
+        pages = [user_spotify_playlists["items"]]
+
+        current_page = 0
+        await interaction.response.send_message(get_playlist_names(pages[current_page]))
+        await interaction.followup.send("Pick a playlist to remove from your library")
+
+        message = await interaction.original_response()
+        await message.add_reaction("⬅️")
+        for num in range(len(user_spotify_playlists["items"])):
+            await message.add_reaction(number_emojis[num+1])
+        await message.add_reaction("➡️")
+
+        while True:
+            try:
+                reaction, _ = await bot.wait_for("reaction_add", timeout=30.0, check=check)
+
+                if str(reaction.emoji) == "➡️" and (next_href is not None or current_page < len(pages)-1):
+                    current_page += 1
+                    if current_page > len(pages)-1 and next_href is not None:
+                        next_page_playlists = util.get_json_from_href(spotify_token, next_href)
+                        pages.append(next_page_playlists["items"])
+                        next_href = next_page_playlists["next"]
+
+                elif str(reaction.emoji) == "⬅️" and current_page > 0:
+                    current_page -= 1
+
+                await message.edit(content=get_playlist_names(pages[current_page]))
+
+
+                if str(reaction.emoji) == "5️⃣" and len(pages[current_page]) == 5:
+                    await remove_playlist(pages[current_page][4]["id"], pages[current_page][4]["name"])
+
+                elif str(reaction.emoji) == "4️⃣" and len(pages[current_page]) >= 4:
+                    await remove_playlist(pages[current_page][3]["id"], pages[current_page][3]["name"])
+
+                elif str(reaction.emoji) == "3️⃣" and len(pages[current_page]) >= 3:
+                    await remove_playlist(pages[current_page][2]["id"], pages[current_page][2]["name"])
+
+                elif str(reaction.emoji) == "2️⃣" and len(pages[current_page]) >= 2:
+                    await remove_playlist(pages[current_page][1]["id"], pages[current_page][1]["name"])
+
+                elif str(reaction.emoji) == "1️⃣" and len(pages[current_page]) >= 1:
+                    await remove_playlist(pages[current_page][0]["id"], pages[current_page][0]["name"])
+
+                await message.remove_reaction(reaction.emoji, interaction.user)
+
+            except asyncio.TimeoutError:
+                break

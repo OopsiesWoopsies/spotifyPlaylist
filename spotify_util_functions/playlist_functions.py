@@ -6,8 +6,8 @@ from spotify_util_functions import get_token, util, searching
 from random import randint
 
 
-def get_playlists(token: str) -> dict:
-    url = util.SPOTIFY_API_URL + "/me/playlists"
+def get_playlists(token: str, limit: int = 20) -> dict:
+    url = util.SPOTIFY_API_URL + f"/me/playlists?limit={limit}"
     header = get_token.get_auth_headers(token)
 
     # requests to get current user's playlists
@@ -34,7 +34,7 @@ def create_playlist(token: str, playlist_name: str = "New Playlist", description
     return json_result
 
 
-def get_playlist_tracks(token, href: str) -> dict:
+def get_playlist_tracks(token: str, href: str) -> dict:
     return util.get_json_from_href(token, href)
 
 
