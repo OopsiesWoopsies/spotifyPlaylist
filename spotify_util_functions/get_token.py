@@ -4,14 +4,50 @@ from dotenv import load_dotenv
 import os
 import base64
 
+from flask import Flask, request
+import webbrowser
+import multiprocessing
+import asyncio
+
 from requests import post, get
 import json
 
 load_dotenv()
 
-client_id = os.getenv("CLIENT_ID")
+client_id = os.getenv("CLIENT_ID") # overhaul get_token to make it work with multiple tokens
 client_secret = os.getenv("CLIENT_SECRET")
-refresh_token = os.getenv("REFRESH_TOKEN")
+test_refresh_token = os.getenv("TEST_REFRESH_TOKEN")
+
+
+def run_flask(shared_auth_code):
+    app = Flask(__name__)
+
+    @app.route("/callback")
+    def callback() -> any:
+        code = request.args.get("code")
+        shared_auth_code.value = code or ""
+        return "Authorization complete"
+
+    app.run(host="0.0.0.0",port=5000, use_reloader=False)
+
+
+async def login(url: str) -> str:
+    manager = multiprocessing.Manager()
+    auth_code = manager.Value(str, "")
+    flask_process = multiprocessing.Process(target=run_flask, args=(auth_code,), daemon=True)
+    flask_process.start()
+
+    webbrowser.open_new(url)
+
+    while auth_code.value == "":
+        await asyncio.sleep(1)
+
+    flask_process.terminate()
+    return auth_code.value
+
+
+def get_auth_headers(token: str) -> dict:
+    return {"Authorization": "Bearer " + token}
 
 
 def encode_auth() -> str:
@@ -22,26 +58,28 @@ def encode_auth() -> str:
     return auth_base64
 
 
-def get_refresh_token() -> tuple:
-    redir = "http://127.0.0.1:8888/callback"
+async def get_refresh_token() -> tuple:
+    redir = "http://localhost:5000/callback"
 
     parameters = {
         "client_id": client_id,
         "response_type": "code",
         "redirect_uri": redir,
-        "scope": "user-read-private user-read-email user-top-read user-read-recently-played user-library-modify user-library-read playlist-modify-public playlist-modify-private playlist-read-private user-read-currently-playing playlist-read-collaborative user-modify-playback-state user-read-playback-state",
+        "scope": ("user-read-private user-read-email user-top-read "
+                  "user-read-recently-played user-library-modify "
+                  "user-library-read playlist-modify-public "
+                  "playlist-modify-private playlist-read-private "
+                  "user-read-currently-playing playlist-read-collaborative "
+                  "user-modify-playback-state user-read-playback-state"),
         "show_dialog": True
     }
 
     response = get("https://accounts.spotify.com/authorize", params = parameters)
-
-    print(response.status_code, response.url)
-
-    code = input("Code: ")
+    auth_code = await login(response.url)
 
     auth_base64 = encode_auth()
     parameters = {
-        "code": code, # USE A WEBSERVER TO TAKE CODE FROM URL
+        "code": auth_code,
         "redirect_uri": redir,
         "grant_type": "authorization_code"
     }
@@ -55,30 +93,12 @@ def get_refresh_token() -> tuple:
 
     token = json_result["access_token"]
     re_token = json_result["refresh_token"]
-
-    with open("../.env", "r") as f:
-        print("enter")
-        my_dict = {}
-        for line in f.readlines():
-            try:
-                key, value = line.split('=')
-                my_dict[key[:-1]] = value
-            except ValueError:
-                # syntax error
-                print("Reading dotenv gone wrong, syntax error")
-    my_dict["REFRESH_TOKEN"] = re_token
-    with open("../.env", "w") as f:
-        f.write("CLIENT_ID =" + my_dict["CLIENT_ID"])
-        f.write("CLIENT_SECRET =" + my_dict["CLIENT_SECRET"])
-        f.write("REFRESH_TOKEN = \"" + my_dict["REFRESH_TOKEN"] + "\"")
-
-    print(json_result)
     expiry = json_result["expires_in"] + datetime.now().timestamp()
+
     return re_token, token, expiry
 
 
-def get_token() -> tuple:
-    global refresh_token
+def get_token(refresh_token: str, test: bool = False) -> tuple:
     url = "https://accounts.spotify.com/api/token"
     token = None
     expiry = None
@@ -96,25 +116,38 @@ def get_token() -> tuple:
 
     if "error" in json_result:
         if json_result["error"] == "invalid_grant":
-            print("Invalid refresh token, fetching a new one")
-            refresh_token, token, expiry = get_refresh_token()
+            refresh_token, token, expiry = asyncio.run(get_refresh_token())
+            if test:
+                write_to_env(refresh_token)
         else:
             print("ERROR: DESCRIPTION: " + json_result["error_description"])
     else:
         token = json_result["access_token"]
         expiry = json_result["expires_in"] + datetime.now().timestamp()
-        print("Token fetched")
 
     return token, expiry
 
 
-def check_expiration(token: str, expiry: float) -> tuple:
+def check_expiration(token: str, refresh_token: str, expiry: float) -> tuple:
     if datetime.now().timestamp() >= expiry:
-        print("Expired token, refreshing")
-        token, expiry = get_token()
+        token, expiry = get_token(refresh_token)
 
     return token, expiry
 
 
-def get_auth_headers(token: str) -> dict:
-    return {"Authorization": "Bearer " + token}
+def write_to_env(refresh_token: str):
+    with open("../.env", "r") as f:
+        my_dict = {}
+        for line in f.readlines():
+            try:
+                key, value = line.split('=')
+                my_dict[key[:-1]] = value
+            except ValueError:
+                # syntax error
+                print("Reading dotenv gone wrong")
+    with open("../.env", "w") as f:
+        f.write("CLIENT_ID =" + my_dict["CLIENT_ID"])
+        f.write("CLIENT_SECRET =" + my_dict["CLIENT_SECRET"])
+        f.write("DISCORD_BOT_TOKEN =" + my_dict["DISCORD_BOT_TOKEN"])
+        f.write("DISCORD_SERVER_ID =" + my_dict["DISCORD_SERVER_ID"])
+        f.write("TEST_REFRESH_TOKEN = \"" + refresh_token + "\"")

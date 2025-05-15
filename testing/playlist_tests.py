@@ -3,12 +3,12 @@ from spotify_util_functions import get_token, playlist_functions
 import util
 
 
-def playlist_things(local_token: str, local_expiry: float):
+def playlist_things(local_token: str, refresh_token: str, local_expiry: float) -> None:
     while True:
         util.print_choices(util.playlist_options)
         choice = input("Enter #: ")
 
-        token, expiry = get_token.check_expiration(local_token, local_expiry)
+        token, expiry = get_token.check_expiration(local_token, refresh_token, local_expiry)
 
         if choice == "1": # View playlists
             if (json_result := check_json_size(token))["total"] == 0:
@@ -16,7 +16,7 @@ def playlist_things(local_token: str, local_expiry: float):
 
             choice = util.choice_validation(f"View playlist's tracks (1-{json_result["total"]}): ", json_result["total"]) # Consider the page turning for playlists and many other things
             playlist_choice = json_result["items"][choice-1]
-            token, expiry = get_token.check_expiration(token, expiry)
+            token, expiry = get_token.check_expiration(token, refresh_token, expiry)
 
             print("\nTracks in " + playlist_choice["name"])
             json_result = playlist_functions.get_playlist_tracks(token, playlist_choice["tracks"]["href"])
@@ -33,7 +33,7 @@ def playlist_things(local_token: str, local_expiry: float):
         elif choice == "2": # Playlist creation
             playlist_name = input("Enter a name for the new playlist: ")
             description = input("Enter a description: ")
-            token, expiry = get_token.check_expiration(token, expiry)
+            token, expiry = get_token.check_expiration(token, refresh_token, expiry)
 
             if playlist_name == "":
                 playlist_name = "New Playlist"
@@ -43,7 +43,7 @@ def playlist_things(local_token: str, local_expiry: float):
         elif choice == "3": # Playlist generator
             keyword = input("Enter a keyword: ") # Test symbols
             amount = util.choice_validation("Amount of songs (30-100): ", 100, 30)
-            token, expiry = get_token.check_expiration(token, expiry)
+            token, expiry = get_token.check_expiration(token, refresh_token, expiry)
 
             playlist_functions.generate_playlist(token, keyword, amount)
             print("Playlist created")
@@ -57,7 +57,7 @@ def playlist_things(local_token: str, local_expiry: float):
 
             print("1. Yes\n2. No\n")
             choice = util.choice_validation(f"Are you SURE you want to remove {playlist_choice["name"]} from your library (this action cannot be undone)? (1-2): ", 2)
-            token, expiry = get_token.check_expiration(token, expiry)
+            token, expiry = get_token.check_expiration(token, refresh_token, expiry)
 
             if choice == 1:
                 playlist_functions.remove_playlist_from_library(token, playlist_choice["id"])
@@ -72,7 +72,7 @@ def playlist_things(local_token: str, local_expiry: float):
             choice = util.choice_validation(f"Pick a playlist to edit its information (1-{json_result["total"]}): ", json_result["total"])
             playlist_choice = json_result["items"][choice - 1]
 
-            edit_playlist(token, expiry, playlist_choice["id"])
+            edit_playlist(token, refresh_token, expiry, playlist_choice["id"])
 
         elif choice == str(len(util.playlist_options)): # Exit
             break
@@ -80,7 +80,7 @@ def playlist_things(local_token: str, local_expiry: float):
         print()
 
 
-def edit_playlist(local_token: str, local_expiry: float, playlist_id: str):
+def edit_playlist(local_token: str, refresh_token: str, local_expiry: float, playlist_id: str):
     field_change_options = ["name", "description"]
 
     while True:
@@ -90,7 +90,7 @@ def edit_playlist(local_token: str, local_expiry: float, playlist_id: str):
         if choice == "1" or choice == "2":
             new_field_change = input(f"New {field_change_options[int(choice)-1]} for this playlist: ")
 
-            token, expiry = get_token.check_expiration(local_token, local_expiry)
+            token, expiry = get_token.check_expiration(local_token, refresh_token, local_expiry)
             playlist_functions.edit_playlist(token, playlist_id, field_change_options[int(choice)-1], new_field_change)
 
         if choice == str(len(util.edit_playlist_options)):
