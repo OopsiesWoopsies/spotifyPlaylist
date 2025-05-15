@@ -49,7 +49,6 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
         offset = (pick // 50) * 50
         page_index = pick // 50
         addition_attempt += 1
-        pick %= 50
 
         if page_index not in json_result_playlist_pages:
             json_result = searching.get_playlist(token, keyword, str(offset))
@@ -57,7 +56,7 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
 
         json_result = json_result_playlist_pages[page_index]
 
-        return pick
+        return pick % len(json_result["items"])
 
 
     def check_song_availability(pick: int) -> int:
@@ -75,7 +74,7 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
 
         json_result = json_result_song_pages[page_index]
 
-        return pick
+        return pick % len(json_result["items"])
 
 
     json_result = searching.get_playlist(token, keyword)  # check keyword cases if needed
@@ -92,7 +91,7 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
 
     # Sets offset, finds page number, and adds a randomly selected song from the randomly selected playlist
     while len(song_id_set) < song_amount and addition_attempt < MAX_ADDITION_ATTEMPT:
-        playlist_pick = randint(0,total_playlists-1)
+        playlist_pick = randint(0, total_playlists-1)
         playlist_pick = check_playlist_availability(playlist_pick)
 
         # Checks if the playlist is still available
@@ -118,7 +117,7 @@ def generate_playlist(token: str, keyword: str, song_amount: int = 30) -> None:
             song_pick = check_song_availability(song_pick)
 
             # Checks if the song is still available
-            while json_result["items"][song_pick] is None:
+            while json_result["items"][song_pick]["track"] is None:
                 song_pick = randint(0, json_result["total"] - 1)
                 song_pick = check_song_availability(song_pick)
 

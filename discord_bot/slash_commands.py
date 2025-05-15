@@ -43,7 +43,7 @@ def setup(bot):
         if user.value == "current_user": # Format this later
             await interaction.response.send_message(user_functions.get_current_user(spotify_token), ephemeral=True)
 
-        if user.value == "authorize" and user_id not in spotify_tokens["users"]:
+        elif user.value == "authorize" and user_id not in spotify_tokens["users"]:
             await interaction.response.send_message("Authorizing...", ephemeral=True)
             spotify_refresh_token, spotify_token, spotify_token_expiration = await get_token.get_refresh_token()
 
@@ -72,9 +72,10 @@ def setup(bot):
         if song_amount > 100:
             song_amount = 100
 
-        await interaction.response.send_message(f"Generating a playlist with {song_amount} songs and {keyword}...")
+        await interaction.response.send_message(f"Generating a playlist with {song_amount} songs and {keyword}...", ephemeral=True)
         playlist_functions.generate_playlist(spotify_token,keyword, song_amount)
-        await interaction.followup.send("Playlist generated! Check your spotify")
+        message = await interaction.original_response()
+        await message.edit(content="Playlist generated! Check your spotify!")
 
 
     @bot.tree.command(name="delete_playlist", description="Delete a playlist from your library", guild=GUILD_ID)
@@ -85,8 +86,8 @@ def setup(bot):
             await interaction.response.send_message("Authorize first with user authorize!", ephemeral=True)
             return
 
+
         def check(reaction, user):
-            nonlocal number_emojis
             return user == interaction.user and str(reaction.emoji) in ["⬅️", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "➡️"] and reaction.message.id == message.id
 
 
@@ -99,11 +100,9 @@ def setup(bot):
 
 
         async def remove_playlist(playlist_id: str, playlist_name: str) -> None:
-            nonlocal interaction
+            nonlocal message
             playlist_functions.remove_playlist_from_library(spotify_token, playlist_id)
-            await interaction.followup.send(f"Removed {playlist_name} from your library")
-            pass
-            # remove all the cached pages after the affected page and re-add the new one
+            await message.edit(content=f"Removed {playlist_name} from your library")
 
 
         number_emojis = {
@@ -119,7 +118,7 @@ def setup(bot):
 
         current_page = 0
         await interaction.response.send_message(get_playlist_names(pages[current_page]))
-        await interaction.followup.send("Pick a playlist to remove from your library")
+        followup = await interaction.followup.send("Pick a playlist to remove from your library (there are no confirmations, beware).")
 
         message = await interaction.original_response()
         await message.add_reaction("⬅️")
@@ -143,23 +142,29 @@ def setup(bot):
 
                 await message.edit(content=get_playlist_names(pages[current_page]))
 
-
                 if str(reaction.emoji) == "5️⃣" and len(pages[current_page]) == 5:
                     await remove_playlist(pages[current_page][4]["id"], pages[current_page][4]["name"])
+                    break
 
                 elif str(reaction.emoji) == "4️⃣" and len(pages[current_page]) >= 4:
                     await remove_playlist(pages[current_page][3]["id"], pages[current_page][3]["name"])
+                    break
 
                 elif str(reaction.emoji) == "3️⃣" and len(pages[current_page]) >= 3:
                     await remove_playlist(pages[current_page][2]["id"], pages[current_page][2]["name"])
+                    break
 
                 elif str(reaction.emoji) == "2️⃣" and len(pages[current_page]) >= 2:
                     await remove_playlist(pages[current_page][1]["id"], pages[current_page][1]["name"])
+                    break
 
                 elif str(reaction.emoji) == "1️⃣" and len(pages[current_page]) >= 1:
                     await remove_playlist(pages[current_page][0]["id"], pages[current_page][0]["name"])
+                    break
 
                 await message.remove_reaction(reaction.emoji, interaction.user)
 
             except asyncio.TimeoutError:
                 break
+        await message.clear_reactions()
+        await followup.delete()
