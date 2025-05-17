@@ -28,37 +28,6 @@ def setup(bot):
             return spotify_token
 
 
-    @bot.tree.command(name="user", description="User related commands", guild=GUILD_ID)
-    @app_commands.choices(user=[
-        app_commands.Choice(name='current-user', value='current_user'),
-        app_commands.Choice(name='authorize', value='authorize'),
-    ])
-    async def user(interaction: discord.Interaction, user: app_commands.Choice[str]):
-        user_id = str(interaction.user.id)
-        spotify_token = check_user_authorized(user_id)
-        if user.value != "authorize" and not spotify_token:
-            await interaction.response.send_message("Authorize first with user authorize!", ephemeral=True)
-            return
-
-        if user.value == "current_user": # Format this later
-            await interaction.response.send_message(user_functions.get_current_user(spotify_token), ephemeral=True)
-
-        elif user.value == "authorize" and user_id not in spotify_tokens["users"]:
-            await interaction.response.send_message("Authorizing...", ephemeral=True)
-            spotify_refresh_token, spotify_token, spotify_token_expiration = await get_token.get_refresh_token()
-
-            spotify_tokens["users"][user_id] = {
-                "spotify_token": spotify_token,
-                "spotify_refresh_token": spotify_refresh_token,
-                "expiration_time": spotify_token_expiration
-            }
-            user_tokens.write_json()
-            await interaction.followup.send("Authorized!", ephemeral=True)
-
-        else:
-            await interaction.response.send_message("Already authorized!", ephemeral=True)
-
-
     @bot.tree.command(name="generate_playlist", description="Generate a random playlist", guild=GUILD_ID)
     async def playlist_generation(interaction: discord.Interaction, keyword: str, song_amount: int = 30):
         user_id = str(interaction.user.id)
@@ -168,3 +137,91 @@ def setup(bot):
                 break
         await message.clear_reactions()
         await followup.delete()
+
+
+# ------------------------------------------------------------------------------------------------------------
+
+
+    @bot.tree.command(name="user", description="User related commands", guild=GUILD_ID)
+    @app_commands.choices(user=[
+        app_commands.Choice(name='current-user', value='current_user'),
+        app_commands.Choice(name='authorize', value='authorize'),
+    ])
+    async def user(interaction: discord.Interaction, user: app_commands.Choice[str]):
+        user_id = str(interaction.user.id)
+        spotify_token = check_user_authorized(user_id)
+        if user.value != "authorize" and not spotify_token:
+            await interaction.response.send_message("Authorize first with user authorize!", ephemeral=True)
+            return
+
+        if user.value == "current_user":  # Format this later
+            json_result = user_functions.get_current_user(spotify_token)
+            await interaction.response.send_message(f"Hey {json_result["display_name"]}!\n\nThat's you... right?", ephemeral=True)
+
+        elif user.value == "authorize" and user_id not in spotify_tokens["users"]:
+            await interaction.response.send_message("Authorizing...", ephemeral=True)
+            spotify_refresh_token, spotify_token, spotify_token_expiration = await get_token.get_refresh_token()
+
+            spotify_tokens["users"][user_id] = {
+                "spotify_token": spotify_token,
+                "spotify_refresh_token": spotify_refresh_token,
+                "expiration_time": spotify_token_expiration
+            }
+            user_tokens.write_json()
+            await interaction.followup.send("Authorized!", ephemeral=True)
+
+        else:
+            await interaction.response.send_message("Already authorized!", ephemeral=True)
+
+
+    @bot.tree.command(name="tops", description="Get your top tracks / artists!", guild=GUILD_ID)
+    @app_commands.choices(top_choice=[
+        app_commands.Choice(name="top_tracks", value="track"),
+        app_commands.Choice(name="top_artists", value="artist")
+    ])
+    @app_commands.choices(time_range=[
+        app_commands.Choice(name="1y", value="3"),
+        app_commands.Choice(name="6m", value="2"),
+        app_commands.Choice(name="4w", value="1")
+    ])
+    async def top_items(interaction: discord.Interaction, top_choice: app_commands.Choice[str], time_range: app_commands.Choice[str], amount: int = 5):
+        user_id = str(interaction.user.id)
+        spotify_token = check_user_authorized(user_id)
+        json_result = None
+        if not spotify_token:
+            await interaction.response.send_message("Authorize first with user authorize!", ephemeral=True)
+            return
+
+
+        def get_artists(json_artists_result: dict) -> str:
+            artist_names = ""
+            for val in range(len(json_artists_result)-1):
+                artist_names += json_artists_result[val]["name"] + ", "
+
+            artist_names += json_artists_result[len(json_artists_result)-1]["name"]
+
+            return artist_names
+
+
+        if amount < 1:
+            amount = 1
+        if amount > 10:
+            amount = 10
+
+        if top_choice.value == "track":
+            json_result = user_functions.get_top_user_tracks(spotify_token, str(amount), time_range.value)
+
+        if top_choice.value == "artist":
+            json_result = user_functions.get_top_user_artists(spotify_token, str(amount), time_range.value)
+
+        build_string = ""
+        for i, val in enumerate(json_result):
+            build_string += f"{i+1}. {val["name"]}\nPopularity: {str(val["popularity"]) + '/100'}"
+            if top_choice.value == "track":
+                build_string += f"\nArtist: {get_artists(val["artists"])}"
+            elif top_choice.value == "artist":
+                build_string += f"\nFollowers: {val["followers"]["total"]:,}"
+
+            build_string += "\n\n"
+
+        await interaction.response.send_message(f"```Here are your top {top_choice.value}s!\n\n{build_string}```", ephemeral=True)
