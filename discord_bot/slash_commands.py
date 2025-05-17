@@ -155,8 +155,8 @@ def setup(bot):
             return
 
         if user.value == "current_user":  # Format this later
-
-            await interaction.response.send_message(user_functions.get_current_user(spotify_token), ephemeral=True)
+            json_result = user_functions.get_current_user(spotify_token)
+            await interaction.response.send_message(f"Hey {json_result["display_name"]}!\n\nThat's you... right?", ephemeral=True)
 
         elif user.value == "authorize" and user_id not in spotify_tokens["users"]:
             await interaction.response.send_message("Authorizing...", ephemeral=True)
