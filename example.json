@@ -1,0 +1,9 @@
+{
+  "users": {
+    "123456789009876543": {
+      "spotify_token": "abc123",
+      "spotify_refresh_token": "abc123",
+      "expiration_time": 1234567890.34567
+    }
+  }
+}
