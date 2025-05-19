@@ -45,8 +45,8 @@ def run_flask(shared_auth_code) -> None:
 async def login(url: str) -> str:
     '''
     Runs a flask server to get user's permission to use their spotify data.
-    :param url:
-    :return: The authorization code
+    :param url: The url that allows user to authenticate their Spotify account.
+    :return: The authorization code.
     '''
 
     # Creates a shared variable so the flask process can pass it back to the main process
@@ -67,7 +67,7 @@ async def login(url: str) -> str:
 def get_auth_headers(token: str) -> dict:
     '''
     Authorization header necessary for a Spotify api request.
-    :param token: A Spotify token.
+    :param token: A Spotify access token.
     :return: Authorization header for Spotify api requests.
     '''
 
@@ -89,8 +89,8 @@ def encode_auth() -> str:
 
 async def get_refresh_token() -> tuple:
     '''
-    Sends a request to Spotify api for a refresh token, token, and expiry for the token.
-    :return: A refresh token, spotify token, and expiry time for the spotify token.
+    Sends a request to Spotify api for a refresh token, access token, and expiry for the token.
+    :return: A refresh token, Spotify access token, and expiry time for the said token.
     '''
 
     redir = "http://localhost:5000/callback"
@@ -108,6 +108,7 @@ async def get_refresh_token() -> tuple:
         "show_dialog": True
     }
 
+    # Sends an authorization request to Spotify api
     response = get("https://accounts.spotify.com/authorize", params = parameters)
     auth_code = await login(response.url)
 
@@ -136,8 +137,8 @@ def get_token(refresh_token: str, test: bool = False) -> tuple:
     '''
     Sends a request to the Spotify api for a Spotify token using the Spotify refresh token.
     :param refresh_token: Spotify refresh token.
-    :param test: Indicates testing.
-    :return: A Spotify token and the expiry time for said token.
+    :param test: Indicates testing. Default: False.
+    :return: A Spotify access token and the expiry time for said token.
     '''
 
     url = "https://accounts.spotify.com/api/token"
@@ -152,9 +153,11 @@ def get_token(refresh_token: str, test: bool = False) -> tuple:
         "Authorization": "Basic " + encode_auth()
     }
 
+    # Sends a request to Spotify api for a user token
     response = post(url, headers=headers, data=data)
     json_result = json.loads(response.content)
 
+    # Checks for error when using refresh token
     if "error" in json_result:
         if json_result["error"] == "invalid_grant":
             refresh_token, token, expiry = asyncio.run(get_refresh_token())
@@ -175,7 +178,7 @@ def check_expiration(token: str, refresh_token: str, expiry: float) -> tuple:
     :param token: Spotify token.
     :param refresh_token: Spotify refresh token.
     :param expiry: Expiry time for the Spotify token.
-    :return: A valid spotify token and the expiry time for said token.
+    :return: A valid Spotify access token and the expiry time for said token.
     '''
 
     if datetime.now().timestamp() >= expiry:
@@ -191,6 +194,7 @@ def write_to_env(refresh_token: str) -> None:
     :return: None.
     '''
 
+    # Replaces the old refresh token with the newly retrieved one
     with open("../.env", "r") as f:
         my_dict = {}
         for line in f.readlines():
