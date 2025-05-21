@@ -1,6 +1,6 @@
 import json
 
-
+# Loads the .json file
 try:
     with open("../user.json", mode="r") as f:
         spotify_tokens = json.load(f)
