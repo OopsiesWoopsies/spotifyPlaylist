@@ -4,6 +4,14 @@ import util
 
 
 def playlist_things(local_token: str, refresh_token: str, local_expiry: float) -> None:
+    """
+    Testing playlist functions.
+    :param local_token: Spotify access token.
+    :param refresh_token: Spotify refresh token.
+    :param local_expiry: When the access token expires.
+    :return: None.
+    """
+
     while True:
         util.print_choices(util.playlist_options)
         choice = input("Enter #: ")
@@ -11,7 +19,8 @@ def playlist_things(local_token: str, refresh_token: str, local_expiry: float) -
         token, expiry = get_token.check_expiration(local_token, refresh_token, local_expiry)
 
         if choice == "1": # View playlists
-            if (json_result := check_json_size(token))["total"] == 0:
+            # Checks if the Spotify account has at least one playlist
+            if (json_result := check_playlist_size(token))["total"] == 0:
                 continue
 
             choice = util.choice_validation(f"View playlist's tracks (1-{json_result["total"]}): ", json_result["total"]) # Consider the page turning for playlists and many other things
@@ -21,14 +30,16 @@ def playlist_things(local_token: str, refresh_token: str, local_expiry: float) -
             print("\nTracks in " + playlist_choice["name"])
             json_result = playlist_functions.get_playlist_tracks(token, playlist_choice["tracks"]["href"])
 
+            # Checks if there are any tracks in the playlist
             if json_result["total"] == 0:
                 print(f"Wait a minute... there's no tracks in {playlist_choice["name"]}!\n")
                 continue
 
+            # Prints out a maximum 50 tracks per page
             for i in range(len(json_result["items"])):
                 print(f"{i+1}. {json_result["items"][i]["track"]["name"]}")
 
-            util.view_with_pages(token, json_result)
+            util.view_with_pages(token, json_result) # Enables page flipping
 
         elif choice == "2": # Playlist creation
             playlist_name = input("Enter a name for the new playlist: ")
@@ -41,7 +52,7 @@ def playlist_things(local_token: str, refresh_token: str, local_expiry: float) -
             playlist_functions.create_playlist(token, playlist_name, description)
 
         elif choice == "3": # Playlist generator
-            keyword = input("Enter a keyword: ") # Test symbols
+            keyword = input("Enter a keyword: ")
             amount = util.choice_validation("Amount of songs (30-100): ", 100, 30)
             token, expiry = get_token.check_expiration(token, refresh_token, expiry)
 
@@ -49,7 +60,7 @@ def playlist_things(local_token: str, refresh_token: str, local_expiry: float) -
             print("Playlist created")
 
         elif choice == "4": # Removing playlist
-            if (json_result := check_json_size(token))["total"] == 0:
+            if (json_result := check_playlist_size(token))["total"] == 0:
                 continue
 
             choice = util.choice_validation(f"Remove a playlist from your library (1-{json_result["total"]}): ",json_result["total"])
@@ -66,7 +77,7 @@ def playlist_things(local_token: str, refresh_token: str, local_expiry: float) -
                 print("Close one...")
 
         elif choice == "5":  # Edit playlist
-            if (json_result := check_json_size(token))["total"] == 0:
+            if (json_result := check_playlist_size(token))["total"] == 0:
                 continue
 
             choice = util.choice_validation(f"Pick a playlist to edit its information (1-{json_result["total"]}): ", json_result["total"])
@@ -80,7 +91,16 @@ def playlist_things(local_token: str, refresh_token: str, local_expiry: float) -
         print()
 
 
-def edit_playlist(local_token: str, refresh_token: str, local_expiry: float, playlist_id: str):
+def edit_playlist(local_token: str, refresh_token: str, local_expiry: float, playlist_id: str) -> None:
+    """
+    Edits a user specified playlist.
+    :param local_token: Spotify access token.
+    :param refresh_token: Spotify refresh token.
+    :param local_expiry: Expiry time for the access token.
+    :param playlist_id: Playlist id.
+    :return: None.
+    """
+
     field_change_options = ["name", "description"]
 
     while True:
@@ -99,14 +119,18 @@ def edit_playlist(local_token: str, refresh_token: str, local_expiry: float, pla
         else:
             print("Invalid #")
 
-def check_json_size(token: str) -> dict:
+def check_playlist_size(token: str) -> dict:
+    """
+    Checks if there are playlists in the json result and returns the json result.
+    :param token: Spotify access token.
+    :return: Json formatted dictionary containing the current user's playlists.
+    """
+
     json_result = playlist_functions.get_playlists(token)
 
     if json_result["total"] == 0:
         print("No playlists! Create one first!")
         return json_result
-
-    json_result = json_result
 
     for i, val in enumerate(json_result["items"]):
         print(f"{i + 1}. {val["name"]}")

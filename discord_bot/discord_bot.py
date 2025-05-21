@@ -20,10 +20,10 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready() -> None:
-    '''
+    """
     Sets up the Discord bot and syncs the tree commands.
     :return: None.
-    '''
+    """
 
     try:
         slash_commands.setup(bot)
@@ -34,19 +34,19 @@ async def on_ready() -> None:
 
 @bot.event
 async def on_disconnect() -> None:
-    '''
+    """
     Writes to the .json file if the bot disconnects. Saves data.
     :return: None.
-    '''
+    """
 
     user_tokens.write_json()
 
 
 def on_exit():
-    '''
+    """
     Writes to the .json file if the program shuts off. Saves data.
     :return: None.
-    '''
+    """
 
     user_tokens.write_json()
 

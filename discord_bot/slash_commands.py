@@ -12,18 +12,18 @@ import asyncio
 GUILD_ID = discord.Object(id=os.getenv("DISCORD_SERVER_ID"))
 
 def setup(bot) -> None:
-    '''
+    """
     Sets up all the commands and adds them to the discord tree.
     :param bot: The bot.
     :return: None.
-    '''
+    """
 
     def check_user_authorized(user_id: str) -> str | None:
-        '''
+        """
         Checks if the user is authorized and renews the Spotify access token if so.
         :param user_id: The user's id.
         :return: Either the Spotify access token or nothing, if they are not authorized.
-        '''
+        """
 
         if user_id in spotify_tokens["users"]:
             spotify_token_info = spotify_tokens["users"][user_id]
@@ -42,13 +42,13 @@ def setup(bot) -> None:
 
     @bot.tree.command(name="generate_playlist", description="Generate a random playlist", guild=GUILD_ID)
     async def playlist_generation(interaction: discord.Interaction, keyword: str, song_amount: int = 30) -> None:
-        '''
+        """
         Generates a playlist using the user's keyword.
         :param interaction: The Discord interaction when the user uses the slash command.
         :param keyword: The search keyword.
         :param song_amount: Amount of songs to put in the playlist (min: 30, max: 100). Default: 30.
         :return: None.
-        '''
+        """
 
         user_id = str(interaction.user.id)
         spotify_token = check_user_authorized(user_id)
@@ -69,14 +69,13 @@ def setup(bot) -> None:
         await message.edit(content="Playlist generated! Check your spotify!")
 
 
-    # Test if you can delete nothing
     @bot.tree.command(name="delete_playlist", description="Delete a playlist from your library", guild=GUILD_ID)
     async def delete_playlist(interaction: discord.Interaction) -> None:
-        '''
+        """
         Deletes the user specified playlist from their Spotify library.
         :param interaction: The Discord interaction when the user uses the slash command.
         :return: None.
-        '''
+        """
 
         user_id = str(interaction.user.id)
         spotify_token = check_user_authorized(user_id)
@@ -87,22 +86,22 @@ def setup(bot) -> None:
 
 
         def check(reaction, user) -> bool:
-            '''
+            """
             Checks if the correct user reacts to the correct message with the correct emojis.
             :param reaction: The user reaction.
             :param user: The interacted user.
             :return: True if the correct user reacts to the correct message with the correct emojis.
-            '''
+            """
 
             return user == interaction.user and str(reaction.emoji) in ["⬅️", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "➡️"] and reaction.message.id == message.id
 
 
         def get_playlist_names(json_result: dict) -> str:
-            '''
+            """
             Retrieves the names of the playlists in the specified json result and lists them out in a string.
             :param json_result: The json result of all the playlists.
             :return: String of names in a form of a list.
-            '''
+            """
 
             names = ""
             for i, val in enumerate(json_result):
@@ -112,12 +111,12 @@ def setup(bot) -> None:
 
 
         async def remove_playlist(playlist_id: str, playlist_name: str) -> None:
-            '''
+            """
             Removes a user specified playlist.
             :param playlist_id: The playlist id to be removed.
             :param playlist_name: The name of the playlist to be removed.
             :return: None.
-            '''
+            """
 
             nonlocal message
             playlist_functions.remove_playlist_from_library(spotify_token, playlist_id)
@@ -142,7 +141,7 @@ def setup(bot) -> None:
         message = await interaction.original_response()
         await message.add_reaction("⬅️")
         # Adds the correct number of emojis (unless there's more than 1 page)
-        for num in range(len(user_spotify_playlists["items"])): # TEST THIS TOO
+        for num in range(len(user_spotify_playlists["items"])):
             await message.add_reaction(number_emojis[num+1])
         await message.add_reaction("➡️")
 
@@ -201,13 +200,13 @@ def setup(bot) -> None:
         app_commands.Choice(name='authorize', value='authorize'),
     ])
     async def user(interaction: discord.Interaction, user: app_commands.Choice[str]) -> None:
-        '''
+        """
         Has two options: current-user and authorize. The former prints the user's Spotify account name
         and the latter brings you to Spotify authorization page.
         :param interaction: The Discord interaction when the user uses the slash command.
         :param user: The interacted user.
         :return: None.
-        '''
+        """
 
         user_id = str(interaction.user.id)
         spotify_token = check_user_authorized(user_id)
@@ -248,14 +247,14 @@ def setup(bot) -> None:
         app_commands.Choice(name="4w", value="1")
     ])
     async def top_items(interaction: discord.Interaction, top_choice: app_commands.Choice[str], time_range: app_commands.Choice[str], amount: int = 5) -> None:
-        '''
+        """
         Retrieves the current user's top songs / artists within a specified time, offering ranges of 4 weeks, 6 months, or a year.
         :param interaction: The Discord interaction when the user uses the slash command.
         :param top_choice: Choice between top tracks or top artists.
         :param time_range: Choice between 4 weeks, 6 months, or a year.
         :param amount: Number of songs / artists to return (min: 1, max: 10). Default: 5.
         :return: None.
-        '''
+        """
 
         user_id = str(interaction.user.id)
         spotify_token = check_user_authorized(user_id)
@@ -267,11 +266,11 @@ def setup(bot) -> None:
 
 
         def get_artist_names(json_artists_result: dict) -> str:
-            '''
+            """
             Retrieves all the names from the artist json result and formats them into a list.
             :param json_artists_result: The json result of all the artist names.
             :return: A list formatted string of artist names.
-            '''
+            """
 
             artist_names = ""
             for val in range(len(json_artists_result)-1):

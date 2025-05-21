@@ -5,11 +5,11 @@ import json
 
 
 def get_current_user(token: str) -> dict:
-    '''
+    """
     Sends a request to Spotify api to retrieve information about the current user.
     :param token: A Spotify access token.
     :return: A json formatted dictionary.
-    '''
+    """
 
     url = util.SPOTIFY_API_URL + "/me"
     headers = get_token.get_auth_headers(token)
@@ -21,13 +21,13 @@ def get_current_user(token: str) -> dict:
 
 
 def get_top_user_artists(token: str, limit: str, time_range: str) -> dict:
-    '''
+    """
     Sends a request to Spotify api to retrieve information about the current user's top artists from between a month to a year.
     :param token: A Spotify access token.
     :param limit: The amount of results to return. Must be between 1 and 50 inclusive.
     :param time_range: A number between 1-3 inclusive as a string. Short term to long term.
     :return: A json formatted dictionary of items.
-    '''
+    """
 
     time = ["short_term", "medium_term", "long_term"]  # long_term --> ~ 1 year | medium_term --> ~ 6 months | short_term ~ 4 weeks
     offset = 0
@@ -41,13 +41,13 @@ def get_top_user_artists(token: str, limit: str, time_range: str) -> dict:
 
 
 def get_top_user_tracks(token: str, limit: str, time_range: str) -> dict:
-    '''
+    """
     Sends a request to Spotify api to retrieve information about the current user's top tracks from between a month to a year.
     :param token: A Spotify access token.
     :param limit: The amount of results to return. Must be between 1 and 50 inclusive.
     :param time_range: A number between 1-3 inclusive as a string. Short term to long term.
     :return: A json formatted dictionary of items.
-    '''
+    """
 
     time = ["short_term", "medium_term", "long_term"] # long_term --> ~ 1 year | medium_term --> ~ 6 months | short_term ~ 4 weeks
     offset = 0

@@ -2,6 +2,7 @@ from spotify_util_functions import get_token, searching
 
 import util, user_tests
 
+# Uses terminal to test each function
 if __name__ == "__main__":
     token, expiry = get_token.get_token(get_token.test_refresh_token, test=True)
 
@@ -15,10 +16,10 @@ if __name__ == "__main__":
 
         token, expiry = get_token.check_expiration(token, get_token.test_refresh_token, expiry)
 
-        if choice == "1":                                       # User related options
+        if choice == "1": # User related options
             user_tests.user_things(token, get_token.test_refresh_token, expiry)
 
-        elif choice == "2":
+        elif choice == "2": # Search artist
             while True:
                 artist_name = input("Enter artist name: ")
                 if len(artist_name) > 0:
@@ -29,8 +30,9 @@ if __name__ == "__main__":
             token, expiry = get_token.check_expiration(token, get_token.test_refresh_token, expiry)
 
             json_result = searching.search_for_artist(token, artist_name)
+            # Ensures valid json result
             if json_result is not None and "error" not in json_result:
-                for i, val in enumerate(json_result):
+                for i, val in enumerate(json_result): # Prints 5 artists for the user to pick from
                     print(f"{str(i+1) + '. ' + val["name"]:<30s} Popularity: {str(val["popularity"]) + '/100':<50s}")
 
                 artist_id_num = util.choice_validation("Artist #: ", len(json_result))
@@ -39,7 +41,7 @@ if __name__ == "__main__":
                 print(f"\nShowing results for {json_result[artist_id_num-1]["name"]}: \nPopularity: {json_result[artist_id_num-1]["popularity"]}/100\n")
                 json_result = searching.get_songs(token, artist_id)
 
-                for i, val in enumerate(json_result):
+                for i, val in enumerate(json_result): # Prints the top 5 songs of the artist
                     print(f"{str(i+1) + '. ' + val["name"]:<100s} Popularity: {str(val["popularity"]) + '/100':<10s}")
                     print("-"*130)
                 print()
