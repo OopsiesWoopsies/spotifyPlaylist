@@ -4,7 +4,7 @@
 This is my first project. Because I love discovering new songs to add to my playlist, I decided to work with Spotify. My decision to turn it into a discord bot was merely because I did not want to create an entire website for something so simplistic and minimal. This was a great learning experience for me, working with APIs and working with git (I practically have no git experience as of right now).
 
 ## Features
-* Generates a playlist baseed on user entered keyword
+* Generates a playlist based on user entered keyword
 * Delete playlists from your Spotify library (be careful with this one)
 * View top played songs ranging from 4 weeks, 6 months, and a year
 
